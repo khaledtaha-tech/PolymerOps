@@ -1,0 +1,2 @@
+import { Suspense } from 'react';import { PageHeading } from '@/components/site-shell';import { IntakeForm } from '@/components/intake-form';import { copy,isLocale } from '@/lib/i18n';import { notFound } from 'next/navigation';
+export default async function Page({params}:{params:Promise<{locale:string}>}){const {locale}=await params;if(!isLocale(locale))notFound();const t=copy[locale];return <><PageHeading eyebrow={t.request} title={t.formTitle} description={t.formIntro}/><div className="shell py-12"><Suspense><IntakeForm locale={locale}/></Suspense></div></>}

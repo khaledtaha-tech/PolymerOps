@@ -1,0 +1,5 @@
+import { cookies } from 'next/headers';import { SignJWT,jwtVerify } from 'jose';import { scryptSync,timingSafeEqual } from 'node:crypto';
+const secret=()=>{if(!process.env.SESSION_SECRET||process.env.SESSION_SECRET.length<32)throw new Error('SESSION_SECRET must have at least 32 characters');return new TextEncoder().encode(process.env.SESSION_SECRET)};
+export function verifyPassword(password:string){const stored=process.env.ADMIN_PASSWORD_HASH||'';const [salt,hash]=stored.split(':');if(!salt||!hash||!/^[a-f0-9]+$/i.test(hash))return false;const actual=scryptSync(password,salt,Buffer.from(hash,'hex').length);return timingSafeEqual(Buffer.from(hash,'hex'),actual)}
+export async function signSession(){return new SignJWT({role:'admin'}).setProtectedHeader({alg:'HS256'}).setIssuedAt().setExpirationTime('12h').sign(secret())}
+export async function isAdmin(){try{const token=(await cookies()).get('po_session')?.value;if(!token)return false;const {payload}=await jwtVerify(token,secret());return payload.role==='admin'}catch{return false}}
