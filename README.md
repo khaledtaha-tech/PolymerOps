@@ -29,7 +29,7 @@ Change the brand name in `/admin`. Add or edit content in `/admin/content`; draf
 
 Requests are stored in PostgreSQL and reviewed at `/admin/requests`. An optional PDF of up to 2 MB is stored privately in PostgreSQL and can be downloaded only by a signed-in administrator. Do not store attachments in `/public`.
 
-Set `NOTIFY_WEBHOOK_URL` to send a minimal new-request event (`id` and type) to your notification integration. An automatic customer acknowledgment email is **not configured**; add a transactional email provider and verified sender before enabling that workflow. The form itself shows a success receipt after a committed database transaction.
+Set `NOTIFY_WEBHOOK_URL` to send a minimal new-request event (`id` and type) to your notification integration. To enable automatic customer acknowledgment and optional administrator notification, configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, and `ADMIN_NOTIFY_EMAIL`. Use an address approved by your SMTP provider. If SMTP is not configured, the form still stores the request and shows a receipt; email delivery is not claimed. If SMTP fails after a successful database commit, the request remains available in the admin dashboard.
 
 ## Deployment
 
