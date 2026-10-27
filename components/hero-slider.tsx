@@ -16,9 +16,8 @@ import {
   Pause,
   Play,
   Sparkles,
-  BarChart3,
-  Sliders,
   CheckCircle2,
+  ExternalLink,
 } from 'lucide-react';
 import type { Locale } from '@/lib/i18n';
 
@@ -45,6 +44,9 @@ interface SlideItem {
   bgGradient: string;
   accentGlow: string;
   badgeIcon: React.ElementType;
+  previewImage: string;
+  mockupBadge_en: string;
+  mockupBadge_ar: string;
   metrics: { value: string; label_en: string; label_ar: string }[];
 }
 
@@ -68,11 +70,14 @@ const slides: SlideItem[] = [
     bgGradient: 'from-[#071320] via-[#0b243b] to-[#081a2c]',
     accentGlow: 'bg-cyan-500/20',
     badgeIcon: Layers,
+    previewImage: '/apps/master-vault.svg',
+    mockupBadge_en: 'PolymerOps Cloud Ecosystem · 12 Nodes Online',
+    mockupBadge_ar: 'منظومة PolymerOps السحابية · 12 نظاماً نشطاً',
     metrics: [
       { value: '12+', label_en: 'Specialized Apps', label_ar: 'تطبيق صناعي متخصص' },
       { value: '100%', label_en: 'Direct Plant Access', label_ar: 'وصول مباشر للمصانع' },
-      { value: '24/7', label_en: 'Uptime Reliability', label_ar: 'جاهزية تشغيلية مستمرة' }
-    ]
+      { value: '24/7', label_en: 'Uptime Reliability', label_ar: 'جاهزية تشغيلية مستمرة' },
+    ],
   },
   {
     id: 'slide-analytics',
@@ -93,11 +98,14 @@ const slides: SlideItem[] = [
     bgGradient: 'from-[#071a26] via-[#0d3448] to-[#092233]',
     accentGlow: 'bg-sky-500/25',
     badgeIcon: Activity,
+    previewImage: '/apps/pipe-calc.svg',
+    mockupBadge_en: 'PipeCalc Engine · SDR Dimension Tolerances',
+    mockupBadge_ar: 'حاسبة المواسير · حسابات أبعاد وسماكات SDR',
     metrics: [
       { value: 'SDR 11-41', label_en: 'Standards Covered', label_ar: 'تغطية المعايير القياسية' },
       { value: '±0.5%', label_en: 'Weight Tolerance', label_ar: 'دقة تفاوت الأوزان' },
-      { value: '15-25%', label_en: 'Scrap Reduction Target', label_ar: 'مستهدف خفض الهالك' }
-    ]
+      { value: '15-25%', label_en: 'Scrap Reduction Target', label_ar: 'مستهدف خفض الهالك' },
+    ],
   },
   {
     id: 'slide-compounding',
@@ -118,11 +126,14 @@ const slides: SlideItem[] = [
     bgGradient: 'from-[#081720] via-[#092e38] to-[#061e27]',
     accentGlow: 'bg-teal-500/25',
     badgeIcon: Cpu,
+    previewImage: '/apps/blown-film.svg',
+    mockupBadge_en: 'Blown Film Pro · BUR & Layflat Calculations',
+    mockupBadge_ar: 'Blown Film Pro · حسابات نسبة النفخ وعرض الرولات',
     metrics: [
       { value: 'BUR 1.5-4.0', label_en: 'Blow-Up Optimization', label_ar: 'تحسين نسبة النفخ' },
       { value: '100%', label_en: 'Formulation Repeatability', label_ar: 'تكرارية تجانس الخلطات' },
-      { value: 'Plant-Proven', label_en: 'Industrial Benchmarks', label_ar: 'معايير مصنعية معتمدة' }
-    ]
+      { value: 'Plant-Proven', label_en: 'Industrial Benchmarks', label_ar: 'معايير مصنعية معتمدة' },
+    ],
   },
   {
     id: 'slide-vault',
@@ -143,18 +154,20 @@ const slides: SlideItem[] = [
     bgGradient: 'from-[#0f111a] via-[#161a29] to-[#0e1220]',
     accentGlow: 'bg-amber-500/20',
     badgeIcon: ShieldCheck,
+    previewImage: '/apps/smart-vault.svg',
+    mockupBadge_en: 'Master Vault · AES-256 Encrypted Telemetry',
+    mockupBadge_ar: 'الخزينة الرئيسية · تشفير AES-256 ومزامنة الأنظمة',
     metrics: [
       { value: 'AES-256', label_en: 'Cryptographic Security', label_ar: 'تشفير عالي الأمان' },
       { value: '12 Hosts', label_en: 'Integrated Ecosystem', label_ar: 'بيئة تطبيقات موحدة' },
-      { value: 'Real-Time', label_en: 'Reconnaissance & Sync', label_ar: 'مزامنة ورصد لحظي' }
-    ]
-  }
+      { value: 'Real-Time', label_en: 'Reconnaissance & Sync', label_ar: 'مزامنة ورصد لحظي' },
+    ],
+  },
 ];
 
 export function HeroSlider({ locale }: HeroSliderProps) {
   const isRtl = locale === 'ar';
   const ArrowNext = isRtl ? ArrowLeft : ArrowRight;
-  const ArrowPrev = isRtl ? ArrowRight : ArrowLeft;
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
     {
@@ -217,7 +230,7 @@ export function HeroSlider({ locale }: HeroSliderProps) {
     <section className="relative overflow-hidden bg-slate-950 text-white select-none">
       {/* Dynamic Background Pattern */}
       <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:24px_24px]" />
-      
+
       {/* Decorative ambient light */}
       <div className="absolute -top-32 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute -bottom-32 right-1/4 w-96 h-96 bg-amber-500/15 rounded-full blur-[120px] pointer-events-none" />
@@ -230,96 +243,161 @@ export function HeroSlider({ locale }: HeroSliderProps) {
             return (
               <div
                 key={slide.id}
-                className={`embla__slide relative bg-gradient-to-br ${slide.bgGradient} py-20 md:py-28 lg:py-32`}
+                className={`embla__slide relative bg-gradient-to-br ${slide.bgGradient} py-16 md:py-24 lg:py-28`}
               >
                 {/* Glow accent per slide */}
                 <div className={`hero-glow top-1/3 end-10 w-96 h-96 ${slide.accentGlow}`} />
 
                 <div className="shell relative z-10">
-                  <div className="max-w-4xl">
-                    {/* Badge Pill */}
-                    <div className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-semibold backdrop-blur-md mb-6">
-                      <span className="flex size-2 rounded-full bg-cyan-400 animate-pulse" />
-                      <Icon className="size-4 text-cyan-300" />
-                      <span className="text-cyan-200">
-                        {isRtl ? slide.tag_ar : slide.tag_en}
-                      </span>
-                    </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+                    
+                    {/* Column 1: Typography, Actions, Metrics (7 cols on large screens) */}
+                    <div className="lg:col-span-7">
+                      {/* Badge Pill */}
+                      <div className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-semibold backdrop-blur-md mb-6">
+                        <span className="flex size-2 rounded-full bg-cyan-400 animate-pulse" />
+                        <Icon className="size-4 text-cyan-300" />
+                        <span className="text-cyan-200">
+                          {isRtl ? slide.tag_ar : slide.tag_en}
+                        </span>
+                      </div>
 
-                    {/* Headline */}
-                    <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.18]">
-                      {isRtl ? slide.title_ar : slide.title_en}{' '}
-                      <span className="bg-gradient-to-r from-amber-300 via-amber-200 to-amber-400 bg-clip-text text-transparent block sm:inline">
-                        {isRtl ? slide.highlight_ar : slide.highlight_en}
-                      </span>
-                    </h1>
+                      {/* Headline */}
+                      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-[1.2]">
+                        {isRtl ? slide.title_ar : slide.title_en}{' '}
+                        <span className="bg-gradient-to-r from-amber-300 via-amber-200 to-amber-400 bg-clip-text text-transparent block sm:inline">
+                          {isRtl ? slide.highlight_ar : slide.highlight_en}
+                        </span>
+                      </h1>
 
-                    {/* Description */}
-                    <p className="mt-6 max-w-2xl text-base sm:text-lg lg:text-xl text-slate-300 leading-relaxed font-normal">
-                      {isRtl ? slide.description_ar : slide.description_en}
-                    </p>
+                      {/* Description */}
+                      <p className="mt-5 max-w-2xl text-sm sm:text-base lg:text-lg text-slate-300 leading-relaxed font-normal">
+                        {isRtl ? slide.description_ar : slide.description_en}
+                      </p>
 
-                    {/* CTA Actions */}
-                    <div className="mt-9 flex flex-wrap items-center gap-4">
-                      {slide.ctaPrimaryHref.startsWith('http') ? (
-                        <a
-                          href={slide.ctaPrimaryHref}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn-accent text-sm md:text-base font-bold shadow-lg group"
-                        >
-                          <span>{isRtl ? slide.ctaPrimary_ar : slide.ctaPrimary_en}</span>
-                          <span className={`inline-block transition-transform duration-200 ${isRtl ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`}>
-                            ↗
-                          </span>
-                        </a>
-                      ) : (
-                        <a
-                          href={slide.ctaPrimaryHref}
-                          className="btn-accent text-sm md:text-base font-bold shadow-lg group"
-                        >
-                          <span>{isRtl ? slide.ctaPrimary_ar : slide.ctaPrimary_en}</span>
-                          <span className={`inline-block transition-transform duration-200 ${isRtl ? 'group-hover:translate-y-0.5' : 'group-hover:translate-y-0.5'}`}>
-                            ↓
-                          </span>
-                        </a>
-                      )}
+                      {/* CTA Actions */}
+                      <div className="mt-8 flex flex-wrap items-center gap-3.5">
+                        {slide.ctaPrimaryHref.startsWith('http') ? (
+                          <a
+                            href={slide.ctaPrimaryHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-accent text-xs sm:text-sm md:text-base font-bold shadow-lg group"
+                          >
+                            <span>{isRtl ? slide.ctaPrimary_ar : slide.ctaPrimary_en}</span>
+                            <span className={`inline-block transition-transform duration-200 ${isRtl ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`}>
+                              {isRtl ? '↖' : '↗'}
+                            </span>
+                          </a>
+                        ) : (
+                          <a
+                            href={slide.ctaPrimaryHref}
+                            className="btn-accent text-xs sm:text-sm md:text-base font-bold shadow-lg group"
+                          >
+                            <span>{isRtl ? slide.ctaPrimary_ar : slide.ctaPrimary_en}</span>
+                            <span className="inline-block transition-transform duration-200 group-hover:translate-y-0.5">
+                              ↓
+                            </span>
+                          </a>
+                        )}
 
-                      {slide.ctaSecondaryHref.startsWith('http') ? (
-                        <a
-                          href={slide.ctaSecondaryHref}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn-outline-white text-sm md:text-base group"
-                        >
-                          <span>{isRtl ? slide.ctaSecondary_ar : slide.ctaSecondary_en}</span>
-                          <span className={`inline-block transition-transform duration-200 ${isRtl ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`}>
-                            ↗
-                          </span>
-                        </a>
-                      ) : (
-                        <Link
-                          href={`/${locale}${slide.ctaSecondaryHref}`}
-                          className="btn-outline-white text-sm md:text-base group"
-                        >
-                          <span>{isRtl ? slide.ctaSecondary_ar : slide.ctaSecondary_en}</span>
-                          <ArrowNext className="size-4 transition-transform group-hover:scale-110" />
-                        </Link>
-                      )}
-                    </div>
+                        {slide.ctaSecondaryHref.startsWith('http') ? (
+                          <a
+                            href={slide.ctaSecondaryHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-outline-white text-xs sm:text-sm md:text-base group"
+                          >
+                            <span>{isRtl ? slide.ctaSecondary_ar : slide.ctaSecondary_en}</span>
+                            <span className={`inline-block transition-transform duration-200 ${isRtl ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`}>
+                              {isRtl ? '↖' : '↗'}
+                            </span>
+                          </a>
+                        ) : (
+                          <Link
+                            href={`/${locale}${slide.ctaSecondaryHref}`}
+                            className="btn-outline-white text-xs sm:text-sm md:text-base group"
+                          >
+                            <span>{isRtl ? slide.ctaSecondary_ar : slide.ctaSecondary_en}</span>
+                            <ArrowNext className="size-4 transition-transform group-hover:scale-110" />
+                          </Link>
+                        )}
+                      </div>
 
-                    {/* Metrics Bar */}
-                    <div className="mt-12 pt-8 border-t border-white/10 grid grid-cols-2 sm:grid-cols-3 gap-6 max-w-2xl">
-                      {slide.metrics.map((m, mIdx) => (
-                        <div key={mIdx}>
-                          <div className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
-                            {m.value}
+                      {/* Metrics Bar */}
+                      <div className="mt-10 pt-6 border-t border-white/10 grid grid-cols-3 gap-4 max-w-xl">
+                        {slide.metrics.map((m, mIdx) => (
+                          <div key={mIdx}>
+                            <div className="text-lg sm:text-xl lg:text-2xl font-extrabold text-white tracking-tight">
+                              {m.value}
+                            </div>
+                            <div className="text-[11px] sm:text-xs text-slate-400 font-medium mt-0.5">
+                              {isRtl ? m.label_ar : m.label_en}
+                            </div>
                           </div>
-                          <div className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">
-                            {isRtl ? m.label_ar : m.label_en}
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Column 2: Prominent Visual Mockup Image (5 cols on large screens) */}
+                    <div className="lg:col-span-5 flex justify-center">
+                      <div className="relative w-full max-w-md lg:max-w-none group">
+                        {/* Outer Glow */}
+                        <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-sky-500/30 to-amber-500/20 blur-xl opacity-75 group-hover:opacity-100 transition duration-500" />
+
+                        {/* Glassmorphic Mockup Container */}
+                        <div className="relative rounded-2xl border border-white/20 bg-slate-900/90 shadow-2xl backdrop-blur-xl overflow-hidden">
+                          {/* Mockup Titlebar */}
+                          <div className="flex items-center justify-between border-b border-white/10 bg-slate-950/60 px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <span className="size-3 rounded-full bg-rose-500/80 inline-block" />
+                              <span className="size-3 rounded-full bg-amber-500/80 inline-block" />
+                              <span className="size-3 rounded-full bg-emerald-500/80 inline-block" />
+                            </div>
+                            <span className="text-[11px] font-mono font-medium text-slate-400 truncate max-w-[200px]">
+                              {isRtl ? slide.mockupBadge_ar : slide.mockupBadge_en}
+                            </span>
+                            <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
+                          </div>
+
+                          {/* App Image Graphic */}
+                          <div className="relative aspect-video w-full overflow-hidden bg-slate-950">
+                            <img
+                              src={slide.previewImage}
+                              alt={isRtl ? slide.title_ar : slide.title_en}
+                              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
+                          </div>
+
+                          {/* Mockup Bottom Pill */}
+                          <div className="p-3 bg-slate-950/80 border-t border-white/10 flex items-center justify-between text-xs">
+                            <span className="flex items-center gap-1.5 text-emerald-400 font-semibold text-[11px]">
+                              <CheckCircle2 className="size-3.5" />
+                              {isRtl ? 'النظام متصل وجاهز للتشغيل' : 'Live System Online'}
+                            </span>
+                            {slide.ctaPrimaryHref.startsWith('http') ? (
+                              <a
+                                href={slide.ctaPrimaryHref}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sky-300 font-bold hover:underline inline-flex items-center gap-1 text-[11px]"
+                              >
+                                <span>{isRtl ? 'عرض مباشر' : 'Live Demo'}</span>
+                                <span>↗</span>
+                              </a>
+                            ) : (
+                              <a
+                                href={slide.ctaPrimaryHref}
+                                className="text-sky-300 font-bold hover:underline inline-flex items-center gap-1 text-[11px]"
+                              >
+                                <span>{isRtl ? 'استعراض' : 'Browse'}</span>
+                                <span>↓</span>
+                              </a>
+                            )}
                           </div>
                         </div>
-                      ))}
+                      </div>
                     </div>
 
                   </div>
@@ -331,7 +409,7 @@ export function HeroSlider({ locale }: HeroSliderProps) {
       </div>
 
       {/* Navigation Controls & Pagination Bar */}
-      <div className="shell relative z-20 -mt-10 pb-6 flex items-center justify-between">
+      <div className="shell relative z-20 -mt-8 pb-6 flex items-center justify-between">
         {/* Slide Indicators / Dots */}
         <div className="flex items-center gap-2.5">
           {slides.map((_, dotIdx) => (

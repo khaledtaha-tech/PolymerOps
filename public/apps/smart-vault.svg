@@ -1,0 +1,32 @@
+<svg width="800" height="450" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="svBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0e1726"/>
+      <stop offset="100%" stop-color="#060b13"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#svBg)"/>
+
+  <!-- Secrets Card -->
+  <g transform="translate(60, 60)">
+    <rect width="680" height="280" rx="14" fill="#0f172a" stroke="#10b981" stroke-width="2"/>
+    <text x="30" y="45" fill="#10b981" font-family="sans-serif" font-size="16" font-weight="bold">ZERO-KNOWLEDGE CREDENTIAL VAULT</text>
+
+    <g transform="translate(30, 80)">
+      <rect x="0" y="0" width="620" height="50" rx="8" fill="#1e293b"/>
+      <text x="20" y="30" fill="#e2e8f0" font-family="monospace" font-size="13">DATABASE_URL •••••••••••••••••••••••••••</text>
+      <rect x="520" y="12" width="80" height="26" rx="4" fill="#10b981"/>
+      <text x="560" y="29" text-anchor="middle" fill="#042f2e" font-family="sans-serif" font-size="11" font-weight="bold">COPY</text>
+    </g>
+
+    <g transform="translate(30, 145)">
+      <rect x="0" y="0" width="620" height="50" rx="8" fill="#1e293b"/>
+      <text x="20" y="30" fill="#e2e8f0" font-family="monospace" font-size="13">PLANT_API_SECRET ••••••••••••••••••••••••</text>
+      <rect x="520" y="12" width="80" height="26" rx="4" fill="#10b981"/>
+      <text x="560" y="29" text-anchor="middle" fill="#042f2e" font-family="sans-serif" font-size="11" font-weight="bold">COPY</text>
+    </g>
+  </g>
+
+  <text x="40" y="380" fill="#ffffff" font-family="sans-serif" font-size="20" font-weight="800">SMART VAULT MANAGER</text>
+  <text x="40" y="405" fill="#10b981" font-family="sans-serif" font-size="11" font-weight="600">ENTERPRISE SECRETS & PRIVILEGED ACCESS</text>
+</svg>

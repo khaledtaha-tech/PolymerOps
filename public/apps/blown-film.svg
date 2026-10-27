@@ -1,0 +1,62 @@
+<svg width="800" height="450" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a192f"/>
+      <stop offset="50%" stop-color="#0f2b48"/>
+      <stop offset="100%" stop-color="#071322"/>
+    </linearGradient>
+    <linearGradient id="bubble" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#818cf8" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#c084fc" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)"/>
+  <circle cx="200" cy="150" r="180" fill="#0284c7" opacity="0.1" filter="blur(40px)"/>
+  <circle cx="650" cy="300" r="160" fill="#f59e0b" opacity="0.1" filter="blur(50px)"/>
+  
+  <!-- Grid lines -->
+  <g stroke="#38bdf8" stroke-opacity="0.1" stroke-width="1">
+    <line x1="0" y1="90" x2="800" y2="90"/>
+    <line x1="0" y1="180" x2="800" y2="180"/>
+    <line x1="0" y1="270" x2="800" y2="270"/>
+    <line x1="0" y1="360" x2="800" y2="360"/>
+    <line x1="200" y1="0" x2="200" y2="450"/>
+    <line x1="400" y1="0" x2="400" y2="450"/>
+    <line x1="600" y1="0" x2="600" y2="450"/>
+  </g>
+
+  <!-- Extruder Die Base -->
+  <rect x="340" y="380" width="120" height="40" rx="4" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+  <rect x="360" y="370" width="80" height="10" rx="2" fill="#38bdf8"/>
+  
+  <!-- Blown Bubble Shape -->
+  <path d="M 370 370 C 350 300, 260 220, 260 140 C 260 80, 320 50, 400 50 C 480 50, 540 80, 540 140 C 540 220, 450 300, 430 370 Z" fill="url(#bubble)" stroke="#38bdf8" stroke-width="2" opacity="0.85"/>
+  <ellipse cx="400" cy="140" rx="140" ry="25" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6"/>
+  
+  <!-- Nip Rollers at Top -->
+  <rect x="320" y="35" width="160" height="15" rx="7" fill="#64748b" stroke="#94a3b8" stroke-width="1.5"/>
+
+  <!-- Telemetry Badge / Data Overlay -->
+  <g transform="translate(60, 60)">
+    <rect width="210" height="85" rx="8" fill="#0f172a" fill-opacity="0.85" stroke="#38bdf8" stroke-width="1.5"/>
+    <text x="16" y="28" fill="#94a3b8" font-family="sans-serif" font-size="11" font-weight="bold">BLOW-UP RATIO (BUR)</text>
+    <text x="16" y="58" fill="#38bdf8" font-family="sans-serif" font-size="28" font-weight="900">2.65 : 1</text>
+    <circle cx="185" cy="24" r="5" fill="#10b981"/>
+  </g>
+
+  <g transform="translate(530, 270)">
+    <rect width="210" height="85" rx="8" fill="#0f172a" fill-opacity="0.85" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="16" y="28" fill="#94a3b8" font-family="sans-serif" font-size="11" font-weight="bold">LAYFLAT WIDTH</text>
+    <text x="16" y="58" fill="#f59e0b" font-family="sans-serif" font-size="28" font-weight="900">1,250 mm</text>
+    <circle cx="185" cy="24" r="5" fill="#10b981"/>
+  </g>
+
+  <!-- Title Watermark -->
+  <text x="40" y="415" fill="#ffffff" font-family="sans-serif" font-size="20" font-weight="800" letter-spacing="1">BLOWN FILM PRO</text>
+  <text x="40" y="432" fill="#38bdf8" font-family="sans-serif" font-size="11" font-weight="600">FILM EXTRUSION CALCULATOR</text>
+</svg>
