@@ -37,7 +37,7 @@ export const APPLICATIONS_DATA: ApplicationItem[] = [
     features_en: ['BUR & Layflat Calculations', 'Die Gap & Output Sizing', 'Roll Weight & Density Optimization'],
     features_ar: ['حسابات نسبة النفخ وعرض الرول', 'معايرة فتحة الداي وسرعة الخط', 'تحسين أوزان اللفات وكثافة الفيلم'],
     tags: ['film', 'extrusion', 'bur', 'blown-film'],
-    image: '/apps/blown-film.svg',
+    image: '/apps/blown-film.png',
     isFeatured: true
   },
   {
@@ -57,7 +57,7 @@ export const APPLICATIONS_DATA: ApplicationItem[] = [
     features_en: ['SDR & Nominal Thickness', 'Weight / Meter & Raw Material Cost', 'Extruder Output & Haul-off Speed'],
     features_ar: ['نسب SDR وسماكات المواسير', 'الوزن بالمتر وتكلفة الخامة', 'إنتاجية الخط وسرعة السحب'],
     tags: ['pvc', 'pipe', 'calc', 'extrusion'],
-    image: '/apps/pipe-calc.svg',
+    image: '/apps/pipe-calc.png',
     isFeatured: true
   },
   {
@@ -77,7 +77,7 @@ export const APPLICATIONS_DATA: ApplicationItem[] = [
     features_en: ['Shift Output & Downtime Logs', 'Real-time Scrap & Regrind Tracking', 'Weight Tolerance & OEE Analytics'],
     features_ar: ['تسجيل إنتاج وتوقفات الورديات', 'تتبع نسب الهالك وإعادة التدوير', 'مراقبة تفاوت الأوزان وكفاءة الخط'],
     tags: ['production', 'analytics', 'scrap', 'oee'],
-    image: '/apps/pipe-production.svg',
+    image: '/apps/pipe-production.png',
     isFeatured: true
   },
   {
@@ -97,7 +97,7 @@ export const APPLICATIONS_DATA: ApplicationItem[] = [
     features_en: ['Formulation Recipe Management', 'Mixer Temperature & Amp Curves', 'Thermal Stabilizer & Filler Balance'],
     features_ar: ['إدارة وصفات وخلطات المواد', 'منحنيات درجات الحرارة والأمبير', 'موازنة المثبتات ومواد الحشو'],
     tags: ['compounding', 'formulation', 'pvc', 'mixer'],
-    image: '/apps/compounding.svg',
+    image: '/apps/compounding.png',
     isFeatured: true
   },
   {
@@ -117,7 +117,7 @@ export const APPLICATIONS_DATA: ApplicationItem[] = [
     features_en: ['Barrel Zone Temperature Profiles', 'Melt Pressure & Vacuum Baselines', 'Industrial Trial Parameter Sheets'],
     features_ar: ['توزيع حرارات قطاعات البثق', 'بيانات ضغط المصهور والتفريغ', 'بطاقات إعدادات التجارب الصناعية'],
     tags: ['machines', 'temperature', 'parameters', 'trials'],
-    image: '/apps/machine-parameters.svg',
+    image: '/apps/machine-parameters.png',
     isFeatured: false
   },
   {
@@ -137,7 +137,7 @@ export const APPLICATIONS_DATA: ApplicationItem[] = [
     features_en: ['24/7 Shift Matrix Scheduling', 'Line Crew Skill Allocation', 'Overtime & Attendance Tracking'],
     features_ar: ['جداول الورديات المستمرة 24/7', 'توزيع مهارات المشغلين على الخطوط', 'متابعة الحضور وتوزيع الأعباء'],
     tags: ['workforce', 'shifts', 'manpower', 'planning'],
-    image: '/apps/manpower.svg',
+    image: '/apps/manpower.png',
     isFeatured: false
   },
   {
@@ -157,7 +157,7 @@ export const APPLICATIONS_DATA: ApplicationItem[] = [
     features_en: ['Preventive Maintenance Schedules', 'Motor & Gearbox Operating Logs', 'Downtime Tracking & Spare Parts'],
     features_ar: ['جداول الصيانة الوقائية الدورية', 'سجلات ساعات عمل المحركات والتروس', 'تحليل فترات التوقف وقطع الغيار'],
     tags: ['maintenance', 'assets', 'downtime', 'equipment'],
-    image: '/apps/equiledger.svg',
+    image: '/apps/equiledger.png',
     isFeatured: false
   },
   {
@@ -177,7 +177,7 @@ export const APPLICATIONS_DATA: ApplicationItem[] = [
     features_en: ['Installation & Overhaul Milestones', 'Task Assignment & Deadlines', 'Engineering Team Collaboration'],
     features_ar: ['مراحل تركيب وصيانة الخطوط', 'توزيع المهام والمواعيد الزمنية', 'تنسيق الفرق الهندسية المشتركة'],
     tags: ['projects', 'milestones', 'commissioning'],
-    image: '/apps/project-control.svg',
+    image: '/apps/project-control.png',
     isFeatured: false
   },
   {
@@ -197,7 +197,7 @@ export const APPLICATIONS_DATA: ApplicationItem[] = [
     features_en: ['GitHub Telemetry & Inspection', 'AES-256 Encrypted Credential Vault', 'Cross-Domain Application Synergy'],
     features_ar: ['مراقبة مستودعات الأكواد والأنظمة', 'خزينة مشفرة بمعيار AES-256', 'ربط تكاملي بين تطبيقات المنظومة'],
     tags: ['devops', 'vault', 'security', 'github'],
-    image: '/apps/master-vault.svg',
+    image: '/apps/master-vault.png',
     isFeatured: true
   },
   {
@@ -217,7 +217,7 @@ export const APPLICATIONS_DATA: ApplicationItem[] = [
     features_en: ['Zero-Knowledge Client Encryption', 'API Key & Database Credential Store', 'Role-Based Operational Access'],
     features_ar: ['تشفير متقدم لحماية الأسرار', 'حفظ مفاتيح الواجهات وقواعد البيانات', 'صلاحيات وصول محددة للمشغلين'],
     tags: ['passwords', 'security', 'credentials', 'vault'],
-    image: '/apps/smart-vault.svg',
+    image: '/apps/smart-vault.png',
     isFeatured: false
   },
   {
@@ -237,7 +237,7 @@ export const APPLICATIONS_DATA: ApplicationItem[] = [
     features_en: ['Technical Visit Scheduling', 'Factory Inspection Checklists', 'Advisory Report Generation'],
     features_ar: ['جدولة الزيارات الفنية الميدانية', 'قوائم تدقيق وفحص المصانع', 'إصدار تقارير الاستشارات الفنية'],
     tags: ['audit', 'inspection', 'visits', 'reports'],
-    image: '/apps/mintle.svg',
+    image: '/apps/mintle.png',
     isFeatured: false
   },
   {
@@ -257,7 +257,7 @@ export const APPLICATIONS_DATA: ApplicationItem[] = [
     features_en: ['Plastics Technical Profiles', 'Extrusion & Lab Chemist Matching', 'Career Opportunities Directory'],
     features_ar: ['ملفات فنية متخصصة لمهندسي البلاستيك', 'مطابقة وظائف البثق والمعامل', 'دليل فرص التوظيف الصناعي'],
     tags: ['talent', 'jobs', 'careers', 'plastics'],
-    image: '/apps/job-hunter.svg',
+    image: '/apps/job-hunter.png',
     isFeatured: false
   }
 ];

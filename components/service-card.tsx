@@ -44,6 +44,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
 export function ServiceCard({ app, locale }: ServiceCardProps) {
   const isRtl = locale === 'ar';
   const IconComponent = ICON_MAP[app.iconName] || Layers;
+  const [imgSrc, setImgSrc] = React.useState(app.image);
 
   const title = isRtl ? app.title_ar : app.title_en;
   const description = isRtl ? app.description_ar : app.description_en;
@@ -65,8 +66,16 @@ export function ServiceCard({ app, locale }: ServiceCardProps) {
       <div>
         <div className="relative h-44 w-full overflow-hidden bg-slate-950 border-b border-slate-100">
           <img
-            src={app.image}
+            src={imgSrc}
             alt={title}
+            onError={() => {
+              // Fallback to SVG if PNG fails or vice versa
+              if (imgSrc.endsWith('.png')) {
+                setImgSrc(imgSrc.replace('.png', '.svg'));
+              } else {
+                setImgSrc('/industry.svg');
+              }
+            }}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />

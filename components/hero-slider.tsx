@@ -70,7 +70,7 @@ const slides: SlideItem[] = [
     bgGradient: 'from-[#071320] via-[#0b243b] to-[#081a2c]',
     accentGlow: 'bg-cyan-500/20',
     badgeIcon: Layers,
-    previewImage: '/apps/master-vault.svg',
+    previewImage: '/apps/master-vault.png',
     mockupBadge_en: 'PolymerOps Cloud Ecosystem · 12 Nodes Online',
     mockupBadge_ar: 'منظومة PolymerOps السحابية · 12 نظاماً نشطاً',
     metrics: [
@@ -98,7 +98,7 @@ const slides: SlideItem[] = [
     bgGradient: 'from-[#071a26] via-[#0d3448] to-[#092233]',
     accentGlow: 'bg-sky-500/25',
     badgeIcon: Activity,
-    previewImage: '/apps/pipe-calc.svg',
+    previewImage: '/apps/pipe-calc.png',
     mockupBadge_en: 'PipeCalc Engine · SDR Dimension Tolerances',
     mockupBadge_ar: 'حاسبة المواسير · حسابات أبعاد وسماكات SDR',
     metrics: [
@@ -126,7 +126,7 @@ const slides: SlideItem[] = [
     bgGradient: 'from-[#081720] via-[#092e38] to-[#061e27]',
     accentGlow: 'bg-teal-500/25',
     badgeIcon: Cpu,
-    previewImage: '/apps/blown-film.svg',
+    previewImage: '/apps/blown-film.png',
     mockupBadge_en: 'Blown Film Pro · BUR & Layflat Calculations',
     mockupBadge_ar: 'Blown Film Pro · حسابات نسبة النفخ وعرض الرولات',
     metrics: [
@@ -154,7 +154,7 @@ const slides: SlideItem[] = [
     bgGradient: 'from-[#0f111a] via-[#161a29] to-[#0e1220]',
     accentGlow: 'bg-amber-500/20',
     badgeIcon: ShieldCheck,
-    previewImage: '/apps/smart-vault.svg',
+    previewImage: '/apps/smart-vault.png',
     mockupBadge_en: 'Master Vault · AES-256 Encrypted Telemetry',
     mockupBadge_ar: 'الخزينة الرئيسية · تشفير AES-256 ومزامنة الأنظمة',
     metrics: [
@@ -365,6 +365,12 @@ export function HeroSlider({ locale }: HeroSliderProps) {
                             <img
                               src={slide.previewImage}
                               alt={isRtl ? slide.title_ar : slide.title_en}
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                if (target.src.endsWith('.png')) {
+                                  target.src = target.src.replace('.png', '.svg');
+                                }
+                              }}
                               className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
