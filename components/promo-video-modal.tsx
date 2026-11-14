@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import useEmblaCarousel from 'embla-carousel-react';
 import {
   X,
   Play,
@@ -29,7 +30,6 @@ import {
 import {
   APPLICATIONS_DATA,
   type ApplicationItem,
-  type PromoVideoItem,
 } from '@/lib/apps-data';
 import type { Locale } from '@/lib/i18n';
 
@@ -89,54 +89,93 @@ export function PromoVideoModal({
   onSelectApp,
 }: PromoVideoModalProps) {
   const isRtl = locale === 'ar';
-  const videoRef = useRef<HTMLVideoElement | null>(null);
   const carouselStripRef = useRef<HTMLDivElement | null>(null);
+  const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
 
-  // Local state to track currently active app in the slider
-  const [currentAppId, setCurrentAppId] = useState<string>(app?.id || allApps[0]?.id);
+  // 1. Initialize Horizontal Embla Slider for the video screens
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: true,
+    direction: isRtl ? 'rtl' : 'ltr',
+    duration: 25,
+    skipSnaps: false,
+  });
 
-  // Sync with prop when modal opens or initial app changes
-  useEffect(() => {
-    if (app?.id) {
-      setCurrentAppId(app.id);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  // Sync selected index when Embla slides
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    const newIdx = emblaApi.selectedScrollSnap();
+    setSelectedIndex(newIdx);
+
+    const targetApp = allApps[newIdx];
+    if (targetApp && onSelectApp) {
+      onSelectApp(targetApp);
     }
-  }, [app?.id, isOpen]);
 
-  // Current active app
-  const activeApp =
-    allApps.find((a) => a.id === currentAppId) || app || allApps[0];
+    // Play active video and pause others
+    Object.keys(videoRefs.current).forEach((key) => {
+      const idx = Number(key);
+      const vid = videoRefs.current[idx];
+      if (vid) {
+        if (idx === newIdx) {
+          vid.currentTime = 0;
+          vid.play().catch(() => {});
+        } else {
+          vid.pause();
+        }
+      }
+    });
+  }, [emblaApi, allApps, onSelectApp]);
 
-  const currentIndex = allApps.findIndex((a) => a.id === activeApp.id);
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onSelect);
+    return () => {
+      emblaApi.off('select', onSelect);
+      emblaApi.off('reInit', onSelect);
+    };
+  }, [emblaApi, onSelect]);
+
+  // When modal opens with a specific app, slide directly to its screen
+  useEffect(() => {
+    if (isOpen && app?.id) {
+      const initialIdx = allApps.findIndex((a) => a.id === app.id);
+      if (initialIdx !== -1) {
+        setSelectedIndex(initialIdx);
+        if (emblaApi) {
+          emblaApi.scrollTo(initialIdx, true);
+        }
+      }
+    }
+  }, [isOpen, app?.id, emblaApi, allApps]);
+
+  // Current active app in the slider
+  const activeApp = allApps[selectedIndex] || app || allApps[0];
   const totalApps = allApps.length;
 
+  const nextApp = allApps[(selectedIndex + 1) % totalApps];
+  const prevApp = allApps[(selectedIndex - 1 + totalApps) % totalApps];
+
   // Navigation handlers
-  const handleSelectApp = useCallback(
-    (targetApp: ApplicationItem) => {
-      setCurrentAppId(targetApp.id);
-      if (onSelectApp) {
-        onSelectApp(targetApp);
-      }
-      if (videoRef.current) {
-        videoRef.current.load();
-        videoRef.current.play().catch(() => {
-          // Handled silent autoplay restrictions if any
-        });
-      }
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
+
+  const scrollToApp = useCallback(
+    (index: number) => {
+      if (emblaApi) emblaApi.scrollTo(index);
     },
-    [onSelectApp]
+    [emblaApi]
   );
 
-  const handleNext = useCallback(() => {
-    const nextIdx = (currentIndex + 1) % totalApps;
-    handleSelectApp(allApps[nextIdx]);
-  }, [currentIndex, totalApps, allApps, handleSelectApp]);
-
-  const handlePrev = useCallback(() => {
-    const prevIdx = (currentIndex - 1 + totalApps) % totalApps;
-    handleSelectApp(allApps[prevIdx]);
-  }, [currentIndex, totalApps, allApps, handleSelectApp]);
-
-  // Keyboard navigation: Escape to close, Arrow keys to slide
+  // Keyboard navigation: Escape to close, Left/Right arrow keys to slide
   useEffect(() => {
     if (!isOpen) return;
 
@@ -145,22 +184,22 @@ export function PromoVideoModal({
         onClose();
       } else if (e.key === 'ArrowRight') {
         if (isRtl) {
-          handlePrev();
+          scrollPrev();
         } else {
-          handleNext();
+          scrollNext();
         }
       } else if (e.key === 'ArrowLeft') {
         if (isRtl) {
-          handleNext();
+          scrollNext();
         } else {
-          handlePrev();
+          scrollPrev();
         }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose, isRtl, handleNext, handlePrev]);
+  }, [isOpen, onClose, isRtl, scrollNext, scrollPrev]);
 
   // Lock body scroll when modal is active
   useEffect(() => {
@@ -175,7 +214,7 @@ export function PromoVideoModal({
 
   // Scroll active thumbnail into view in the bottom slider strip
   useEffect(() => {
-    if (carouselStripRef.current) {
+    if (carouselStripRef.current && activeApp?.id) {
       const activeEl = carouselStripRef.current.querySelector(
         `[data-app-id="${activeApp.id}"]`
       ) as HTMLElement | null;
@@ -187,7 +226,7 @@ export function PromoVideoModal({
         });
       }
     }
-  }, [activeApp.id]);
+  }, [activeApp?.id]);
 
   if (!isOpen || !activeApp) {
     return null;
@@ -206,9 +245,6 @@ export function PromoVideoModal({
       return activeApp.url;
     }
   })();
-
-  const nextApp = allApps[(currentIndex + 1) % totalApps];
-  const prevApp = allApps[(currentIndex - 1 + totalApps) % totalApps];
 
   return (
     <div
@@ -275,8 +311,8 @@ export function PromoVideoModal({
               <Film className="size-3.5 text-sky-400" />
               <span>
                 {isRtl
-                  ? `تطبيق ${currentIndex + 1} من ${totalApps}`
-                  : `App ${currentIndex + 1} of ${totalApps}`}
+                  ? `شاشة ${selectedIndex + 1} من ${totalApps}`
+                  : `Screen ${selectedIndex + 1} of ${totalApps}`}
               </span>
             </div>
 
@@ -295,84 +331,90 @@ export function PromoVideoModal({
         {/* Video Slider Section */}
         <div className="p-3 sm:p-5 space-y-4">
           {/* ════════════════════════════════════════════════════════════════════ */}
-          {/* VIDEO PLAYER WITH INTERACTIVE PREV / NEXT SLIDER ARROWS */}
+          {/* HORIZONTAL SLIDER IN SCREENS: TRUE HORIZONTAL EMBLA CAROUSEL */}
           {/* ════════════════════════════════════════════════════════════════════ */}
-          <div className="relative aspect-video w-full max-w-full overflow-hidden rounded-xl sm:rounded-2xl border border-slate-800 bg-black shadow-2xl shadow-black/80 group/player">
-            {/* Video Player Element */}
-            <video
-              ref={videoRef}
-              key={activeApp.id}
-              controls
-              muted
-              playsInline
-              autoPlay
-              preload="metadata"
-              poster={activeApp.image}
-              className="h-full w-full object-contain bg-black rounded-xl sm:rounded-2xl"
+          <div className="relative group/player">
+            {/* Embla Viewport */}
+            <div
+              className="overflow-hidden rounded-xl sm:rounded-2xl border border-slate-800 bg-black shadow-2xl shadow-black/90 cursor-grab active:cursor-grabbing"
+              ref={emblaRef}
             >
-              {/* 
-                ═══════════════════════════════════════════════════════════════
-                // TODO: 5-SECOND RECORDED APP VIDEO SOURCE
-                // 1. Primary: dedicated 5-sec video file from public/videos/<id>.mp4
-                // ═══════════════════════════════════════════════════════════════
-              */}
-              <source
-                // TODO: REPLACE OR DROP YOUR 5-SEC VIDEO FILE AT public/videos/${activeApp.id}.mp4
-                src={`/videos/${activeApp.id}.mp4`}
-                type="video/mp4"
-              />
+              <div className="flex">
+                {allApps.map((item, idx) => {
+                  const isCurrent = idx === selectedIndex;
+                  return (
+                    <div
+                      key={item.id}
+                      className="min-w-0 flex-[0_0_100%] relative aspect-video bg-black flex items-center justify-center select-none"
+                    >
+                      {/* Video Player for active screen */}
+                      <video
+                        ref={(el) => {
+                          videoRefs.current[idx] = el;
+                        }}
+                        controls
+                        muted
+                        playsInline
+                        preload={isCurrent ? 'auto' : 'metadata'}
+                        poster={item.image}
+                        className="h-full w-full object-contain bg-black"
+                      >
+                        {/* 1. Dedicated 5-sec video file from public/videos/<id>.mp4 */}
+                        <source
+                          src={`/videos/${item.id}.mp4`}
+                          type="video/mp4"
+                        />
+                        {/* 2. Fallback sample video for testing */}
+                        <source
+                          src={SAMPLE_TEST_VIDEO_URL}
+                          type="video/mp4"
+                        />
+                        <p className="p-4 text-center text-xs text-slate-400">
+                          {isRtl
+                            ? 'متصفحك لا يدعم تشغيل هذا الفيديو مباشرة.'
+                            : 'Your browser does not support the video tag.'}
+                        </p>
+                      </video>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
-              {/* 
-                ═══════════════════════════════════════════════════════════════
-                // 2. Fallback: functional sample video for immediate testing
-                // ═══════════════════════════════════════════════════════════════
-              */}
-              <source
-                // Sample video for testing until your 5-sec file is added
-                src={SAMPLE_TEST_VIDEO_URL}
-                type="video/mp4"
-              />
-              <p className="p-4 text-center text-xs text-slate-400">
-                {isRtl
-                  ? 'متصفحك لا يدعم تشغيل هذا الفيديو مباشرة.'
-                  : 'Your browser does not support the video tag.'}
-              </p>
-            </video>
-
-            {/* Floating Slider Arrow: PREVIOUS APP (Left / Start) */}
+            {/* Floating Slider Arrow: PREVIOUS SCREEN (Start side) */}
             <button
               type="button"
-              onClick={isRtl ? handleNext : handlePrev}
+              onClick={scrollPrev}
               aria-label={
                 isRtl
-                  ? `التالي: ${nextApp.title_ar}`
-                  : `Previous: ${prevApp.title_en}`
+                  ? `الشاشة التالية: ${nextApp.title_ar}`
+                  : `Previous Screen: ${prevApp.title_en}`
               }
               title={
                 isRtl
                   ? `الانتقال إلى: ${nextApp.title_ar}`
                   : `Go to: ${prevApp.title_en}`
               }
-              className="absolute start-2 sm:start-4 top-1/2 -translate-y-1/2 z-20 flex size-10 sm:size-12 items-center justify-center rounded-full bg-slate-950/75 hover:bg-sky-600 text-white backdrop-blur-md border border-white/20 shadow-xl transition-all duration-200 hover:scale-110 active:scale-95 group-hover/player:opacity-100 opacity-90 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="absolute start-2 sm:start-4 top-1/2 -translate-y-1/2 z-20 flex size-10 sm:size-12 items-center justify-center rounded-full bg-slate-950/80 hover:bg-sky-600 text-white backdrop-blur-md border border-white/20 shadow-2xl transition-all duration-200 hover:scale-110 active:scale-95 group-hover/player:opacity-100 opacity-90 focus:outline-none focus:ring-2 focus:ring-sky-400"
             >
               <ChevronLeft className="size-6 text-white rtl:rotate-180" />
             </button>
 
-            {/* Floating Slider Arrow: NEXT APP (Right / End) */}
+            {/* Floating Slider Arrow: NEXT SCREEN (End side) */}
             <button
               type="button"
-              onClick={isRtl ? handlePrev : handleNext}
+              onClick={scrollNext}
               aria-label={
                 isRtl
-                  ? `السابق: ${prevApp.title_ar}`
-                  : `Next: ${nextApp.title_en}`
+                  ? `الشاشة السابقة: ${prevApp.title_ar}`
+                  : `Next Screen: ${nextApp.title_en}`
               }
               title={
                 isRtl
                   ? `الانتقال إلى: ${prevApp.title_ar}`
                   : `Go to: ${nextApp.title_en}`
               }
-              className="absolute end-2 sm:end-4 top-1/2 -translate-y-1/2 z-20 flex size-10 sm:size-12 items-center justify-center rounded-full bg-slate-950/75 hover:bg-sky-600 text-white backdrop-blur-md border border-white/20 shadow-xl transition-all duration-200 hover:scale-110 active:scale-95 group-hover/player:opacity-100 opacity-90 focus:outline-none focus:ring-2 focus:ring-sky-400"
+              className="absolute end-2 sm:end-4 top-1/2 -translate-y-1/2 z-20 flex size-10 sm:size-12 items-center justify-center rounded-full bg-slate-950/80 hover:bg-sky-600 text-white backdrop-blur-md border border-white/20 shadow-2xl transition-all duration-200 hover:scale-110 active:scale-95 group-hover/player:opacity-100 opacity-90 focus:outline-none focus:ring-2 focus:ring-sky-400"
             >
               <ChevronRight className="size-6 text-white rtl:rotate-180" />
             </button>
@@ -383,8 +425,8 @@ export function PromoVideoModal({
                 <Film className="size-3 text-sky-400" />
                 <span>
                   {isRtl
-                    ? `تطبيق ${currentIndex + 1} / ${totalApps}`
-                    : `App ${currentIndex + 1} / ${totalApps}`}
+                    ? `شاشة ${selectedIndex + 1} / ${totalApps}`
+                    : `Screen ${selectedIndex + 1} / ${totalApps}`}
                 </span>
               </span>
             </div>
@@ -392,9 +434,25 @@ export function PromoVideoModal({
             <div className="absolute top-3 end-3 pointer-events-none z-10 flex items-center gap-1.5">
               <span className="inline-flex items-center gap-1 rounded-md bg-slate-950/80 backdrop-blur-md px-2 py-1 text-[10px] font-semibold text-amber-300 border border-amber-500/30 shadow-sm">
                 <VolumeX className="size-3 text-amber-400" />
-                <span>{isRtl ? 'فيديو تجريبي 5 ثوانٍ' : '5-Sec Demo Video'}</span>
+                <span>{isRtl ? 'سلايدر فيديو 5 ثوانٍ' : '5-Sec Video Slider'}</span>
               </span>
             </div>
+          </div>
+
+          {/* 12-Screen Pagination Dots Indicator */}
+          <div className="flex items-center justify-center gap-1.5 pt-1">
+            {allApps.map((item, idx) => (
+              <button
+                key={item.id}
+                onClick={() => scrollToApp(idx)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  idx === selectedIndex
+                    ? 'w-7 bg-sky-400 shadow-md shadow-sky-500/50'
+                    : 'w-2 bg-slate-700 hover:bg-slate-500'
+                }`}
+                aria-label={`Go to screen ${idx + 1}`}
+              />
+            ))}
           </div>
 
           {/* ════════════════════════════════════════════════════════════════════ */}
@@ -406,8 +464,8 @@ export function PromoVideoModal({
                 <Film className="size-3.5 text-sky-400" />
                 <span>
                   {isRtl
-                    ? 'اسحب أو اختر التطبيق لمشاهدة الفيديو (12 تطبيقاً صناعياً):'
-                    : 'Slide or select application to preview (12 apps):'}
+                    ? 'شريط السلايدر الأفقي للشاشات (اسحب أو اضغط للتنقل):'
+                    : 'Horizontal Screens Slider (Swipe or click to navigate):'}
                 </span>
               </span>
 
@@ -415,17 +473,17 @@ export function PromoVideoModal({
               <div className="flex items-center gap-1">
                 <button
                   type="button"
-                  onClick={handlePrev}
+                  onClick={scrollPrev}
                   className="flex size-6 items-center justify-center rounded-md bg-slate-800 text-slate-300 hover:bg-sky-600 hover:text-white transition-colors"
-                  aria-label="Previous app"
+                  aria-label="Previous screen"
                 >
                   <ChevronLeft className="size-3.5 rtl:rotate-180" />
                 </button>
                 <button
                   type="button"
-                  onClick={handleNext}
+                  onClick={scrollNext}
                   className="flex size-6 items-center justify-center rounded-md bg-slate-800 text-slate-300 hover:bg-sky-600 hover:text-white transition-colors"
-                  aria-label="Next app"
+                  aria-label="Next screen"
                 >
                   <ChevronRight className="size-3.5 rtl:rotate-180" />
                 </button>
@@ -438,7 +496,7 @@ export function PromoVideoModal({
               className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-700"
             >
               {allApps.map((item, idx) => {
-                const isSelected = item.id === activeApp.id;
+                const isSelected = idx === selectedIndex;
                 const ItemIcon = ICON_MAP[item.iconName] || Layers;
                 const itemTitle = isRtl ? item.title_ar : item.title_en;
 
@@ -447,7 +505,7 @@ export function PromoVideoModal({
                     key={item.id}
                     data-app-id={item.id}
                     type="button"
-                    onClick={() => handleSelectApp(item)}
+                    onClick={() => scrollToApp(idx)}
                     className={`flex items-center gap-2 shrink-0 rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
                       isSelected
                         ? 'bg-gradient-to-r from-sky-600 to-sky-700 text-white shadow-lg shadow-sky-600/30 border border-sky-400 ring-2 ring-sky-400/40 scale-[1.02]'
@@ -490,8 +548,8 @@ export function PromoVideoModal({
                 <AlertCircle className="size-3" />
                 <span>
                   {isRtl
-                    ? 'الفيديو جاهز لاستقبال تسجيلات الـ 5 ثوانٍ لكل تطبيق'
-                    : 'Ready to receive your 5-sec video recording for each app'}
+                    ? 'سلايدر أفقي تفاعلي كامل للشاشات والفيديوهات'
+                    : 'Full interactive horizontal slider for screens and demo videos'}
                 </span>
               </span>
             </div>
@@ -517,23 +575,23 @@ export function PromoVideoModal({
         {/* Modal Action Footer with Next / Prev buttons and Direct App Launch */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-800 bg-slate-950 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
-            {/* Prev App Button */}
+            {/* Prev Screen Button */}
             <button
               type="button"
-              onClick={handlePrev}
+              onClick={scrollPrev}
               className="inline-flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs font-bold text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
             >
               <ChevronLeft className="size-4 rtl:rotate-180" />
-              <span>{isRtl ? 'التطبيق السابق' : 'Previous App'}</span>
+              <span>{isRtl ? 'الشاشة السابقة' : 'Previous Screen'}</span>
             </button>
 
-            {/* Next App Button */}
+            {/* Next Screen Button */}
             <button
               type="button"
-              onClick={handleNext}
+              onClick={scrollNext}
               className="inline-flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs font-bold text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
             >
-              <span>{isRtl ? 'التطبيق التالي' : 'Next App'}</span>
+              <span>{isRtl ? 'الشاشة التالية' : 'Next Screen'}</span>
               <ChevronRight className="size-4 rtl:rotate-180" />
             </button>
           </div>
