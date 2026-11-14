@@ -1,3 +1,15 @@
+export interface PromoVideoItem {
+  id: string;
+  title_en: string;
+  title_ar: string;
+  description_en: string;
+  description_ar: string;
+  videoUrl: string;
+  embedUrl?: string;
+  duration?: string;
+  posterImage?: string;
+}
+
 export interface ApplicationItem {
   id: string;
   slug: string;
@@ -17,6 +29,7 @@ export interface ApplicationItem {
   tags: string[];
   image: string;
   isFeatured?: boolean;
+  promoVideos?: PromoVideoItem[];
 }
 
 export const APPLICATIONS_DATA: ApplicationItem[] = [

@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { APPLICATIONS_DATA, CATEGORIES, type ApplicationItem } from '@/lib/apps-data';
 import { ServiceCard } from '@/components/service-card';
+import { PromoVideoModal } from '@/components/promo-video-modal';
 import type { Locale } from '@/lib/i18n';
 
 interface ServicesGridProps {
@@ -15,6 +16,7 @@ export function ServicesGrid({ locale, initialCategory = 'all' }: ServicesGridPr
   const isRtl = locale === 'ar';
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedPromoApp, setSelectedPromoApp] = useState<ApplicationItem | null>(null);
 
   const filteredApps = useMemo(() => {
     return APPLICATIONS_DATA.filter((app) => {
@@ -102,7 +104,12 @@ export function ServicesGrid({ locale, initialCategory = 'all' }: ServicesGridPr
       {filteredApps.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredApps.map((app) => (
-            <ServiceCard key={app.id} app={app} locale={locale} />
+            <ServiceCard
+              key={app.id}
+              app={app}
+              locale={locale}
+              onWatchPromo={(selected) => setSelectedPromoApp(selected)}
+            />
           ))}
         </div>
       ) : (
@@ -126,6 +133,14 @@ export function ServicesGrid({ locale, initialCategory = 'all' }: ServicesGridPr
           </button>
         </div>
       )}
+
+      {/* Reusable Video Promo Modal */}
+      <PromoVideoModal
+        isOpen={!!selectedPromoApp}
+        onClose={() => setSelectedPromoApp(null)}
+        app={selectedPromoApp}
+        locale={locale}
+      />
     </div>
   );
 }
