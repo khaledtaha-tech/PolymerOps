@@ -9,7 +9,6 @@ import {
   Sparkles,
   ExternalLink,
   CheckCircle2,
-  MonitorPlay,
   Layers,
   Calculator,
   Activity,
@@ -23,6 +22,7 @@ import {
   ClipboardCheck,
   Briefcase,
   AlertCircle,
+  VolumeX,
 } from 'lucide-react';
 import type { ApplicationItem, PromoVideoItem } from '@/lib/apps-data';
 import type { Locale } from '@/lib/i18n';
@@ -34,7 +34,7 @@ export interface PromoVideoModalProps {
   locale: Locale;
 }
 
-// Icon mapper matching apps-data
+// Icon mapper matching applications catalog
 const ICON_MAP: Record<string, React.ElementType> = {
   Layers,
   Calculator,
@@ -49,6 +49,14 @@ const ICON_MAP: Record<string, React.ElementType> = {
   ClipboardCheck,
   Briefcase,
 };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TODO: REPLACE THIS SAMPLE URL WITH YOUR ACTUAL PROMO VIDEO URL
+// Standard, high-availability, fully functional sample MP4 video for structural testing:
+// ═══════════════════════════════════════════════════════════════════════════
+const SAMPLE_PROMO_VIDEO_URL_1 = 'https://www.w3schools.com/html/mov_bbb.mp4';
+const SAMPLE_PROMO_VIDEO_URL_2 =
+  'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
 
 export function PromoVideoModal({
   isOpen,
@@ -74,7 +82,7 @@ export function PromoVideoModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Lock body scroll when modal is active
+  // Lock body scroll when modal is active to prevent background scrolling
   useEffect(() => {
     if (isOpen) {
       const originalOverflow = document.body.style.overflow;
@@ -98,7 +106,6 @@ export function PromoVideoModal({
 
   const IconComponent = ICON_MAP[app.iconName] || Layers;
   const title = isRtl ? app.title_ar : app.title_en;
-  const description = isRtl ? app.description_ar : app.description_en;
   const category = isRtl ? app.category_ar : app.category_en;
   const features = isRtl ? app.features_ar : app.features_en;
 
@@ -112,7 +119,7 @@ export function PromoVideoModal({
 
   // ═══════════════════════════════════════════════════════════════════════════
   // PROMOTIONAL & EXPLAINER VIDEOS DATA
-  // Default 2 high-quality promotional videos per app (can be overridden in app.promoVideos)
+  // Default 2 working promotional videos per app (can be overridden in app.promoVideos)
   // ═══════════════════════════════════════════════════════════════════════════
   const defaultVideos: PromoVideoItem[] = [
     {
@@ -123,10 +130,9 @@ export function PromoVideoModal({
         'A comprehensive overview of core capabilities, input parameters, and industrial workflows tailored for production teams.',
       description_ar:
         'استعراض شامل لأهم وظائف التطبيق، مدخلات العمليات الصناعية، ولوحات المراقبة اللحظية المصممة لمهندسي وفنيي الإنتاج.',
-      duration: '01:45',
-      // High-quality public sample MP4 (replace with your actual video URL or embed)
-      videoUrl:
-        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+      duration: '00:10',
+      // TODO: REPLACE THIS SAMPLE URL WITH YOUR ACTUAL PROMO VIDEO URL
+      videoUrl: SAMPLE_PROMO_VIDEO_URL_1,
       posterImage: app.image,
     },
     {
@@ -137,10 +143,9 @@ export function PromoVideoModal({
         'Step-by-step walkthrough covering calibration calculations, tolerance monitoring, and exporting industrial reports.',
       description_ar:
         'شرح تطبيقي مفصل لطريقة إدخال البيانات، ضبط حدود التفاوت المقبولة، وإصدار التقارير الفنية المعتمدة للمصنع.',
-      duration: '02:30',
-      // Second high-quality public sample MP4
-      videoUrl:
-        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+      duration: '00:05',
+      // TODO: REPLACE THIS SAMPLE URL WITH YOUR SECOND PROMO VIDEO URL
+      videoUrl: SAMPLE_PROMO_VIDEO_URL_2,
       posterImage: app.image,
     },
   ];
@@ -169,10 +174,10 @@ export function PromoVideoModal({
       {/* 2. Main Modal Dialog Box */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative z-10 w-full max-w-4xl overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-700/80 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white shadow-2xl shadow-black/70 animate-in zoom-in-95 duration-200"
+        className="relative z-10 w-full max-w-4xl overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-700/80 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white shadow-2xl shadow-black/80 animate-in zoom-in-95 duration-200"
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between gap-3 border-b border-slate-800 bg-slate-900/90 px-4 py-3.5 sm:px-6 sm:py-4">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-800 bg-slate-900/95 px-4 py-3.5 sm:px-6 sm:py-4">
           <div className="flex items-center gap-3 min-w-0">
             {/* App Icon */}
             <div className="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-600 to-slate-800 text-white shadow-md shadow-sky-600/20 border border-sky-500/30">
@@ -246,12 +251,18 @@ export function PromoVideoModal({
                       : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
                   }`}
                 >
-                  <Play className={`size-3 ${isSelected ? 'fill-white text-white' : 'fill-slate-400 text-slate-400'}`} />
+                  <Play
+                    className={`size-3 ${
+                      isSelected
+                        ? 'fill-white text-white'
+                        : 'fill-slate-400 text-slate-400'
+                    }`}
+                  />
                   <span>
                     {isRtl ? `فيديو ${idx + 1}:` : `Video ${idx + 1}:`} {vidTitle}
                   </span>
                   {vid.duration && (
-                    <span className="rounded bg-black/30 px-1.5 py-0.2 text-[10px] text-slate-300">
+                    <span className="rounded bg-black/40 px-1.5 py-0.5 text-[10px] text-slate-300">
                       {vid.duration}
                     </span>
                   )}
@@ -263,17 +274,17 @@ export function PromoVideoModal({
 
         {/* Video Player Section */}
         <div className="p-4 sm:p-6 space-y-4">
-          <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-slate-800 bg-black shadow-inner shadow-black">
+          <div className="relative aspect-video w-full max-w-full overflow-hidden rounded-xl border border-slate-800 bg-black shadow-lg shadow-black/60">
             {/* 
               ═══════════════════════════════════════════════════════════════════
-              REPLACE WITH YOUR ACTUAL PROMO VIDEO (MP4 OR IFRAME EMBED):
+              TODO: REPLACE THIS SAMPLE URL WITH YOUR ACTUAL PROMO VIDEO URL
               
-              Option 1 (Default): HTML5 Video player for self-hosted .mp4 files
-              Option 2: Replace with YouTube/Vimeo iframe:
+              Option 1 (Default): Standard HTML5 <video> player for self-hosted MP4 files
+              Option 2: Replace this block with a YouTube or Vimeo iframe embed:
               <iframe
                 src="https://www.youtube-nocookie.com/embed/YOUR_VIDEO_ID"
                 title={isRtl ? activeVideo.title_ar : activeVideo.title_en}
-                className="w-full h-full border-0"
+                className="w-full h-full border-0 rounded-xl"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
@@ -283,7 +294,7 @@ export function PromoVideoModal({
               <iframe
                 src={activeVideo.embedUrl}
                 title={isRtl ? activeVideo.title_ar : activeVideo.title_en}
-                className="h-full w-full border-0"
+                className="h-full w-full border-0 rounded-xl"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
@@ -292,12 +303,20 @@ export function PromoVideoModal({
                 ref={videoRef}
                 key={activeVideo.videoUrl}
                 controls
+                muted
                 playsInline
                 preload="metadata"
                 poster={activeVideo.posterImage || app.image}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain bg-black rounded-xl"
               >
-                <source src={activeVideo.videoUrl} type="video/mp4" />
+                {/* ═══════════════════════════════════════════════════════════════ */}
+                {/* // TODO: REPLACE THIS SAMPLE URL WITH YOUR ACTUAL PROMO VIDEO URL */}
+                {/* ═══════════════════════════════════════════════════════════════ */}
+                <source
+                  // TODO: REPLACE THIS SAMPLE URL WITH YOUR ACTUAL PROMO VIDEO URL
+                  src={activeVideo.videoUrl}
+                  type="video/mp4"
+                />
                 <p className="p-4 text-center text-xs text-slate-400">
                   {isRtl
                     ? 'متصفحك لا يدعم تشغيل هذا الفيديو مباشرة.'
@@ -306,17 +325,21 @@ export function PromoVideoModal({
               </video>
             )}
 
-            {/* Video Watermark / Corner Pill */}
-            <div className="absolute top-3 end-3 pointer-events-none">
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-950/75 backdrop-blur-md px-2 py-1 text-[10px] font-semibold text-sky-300 border border-sky-500/20">
+            {/* Video Watermark / Top Right Pill */}
+            <div className="absolute top-3 end-3 pointer-events-none z-10 flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 rounded-md bg-slate-950/80 backdrop-blur-md px-2 py-1 text-[10px] font-semibold text-sky-300 border border-sky-500/30 shadow-sm">
                 <Film className="size-3 text-sky-400" />
                 <span>PolymerOps Demo</span>
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-md bg-slate-950/80 backdrop-blur-md px-2 py-1 text-[10px] font-semibold text-amber-300 border border-amber-500/30 shadow-sm">
+                <VolumeX className="size-3 text-amber-400" />
+                <span>{isRtl ? 'صامت افتراضياً' : 'Muted'}</span>
               </span>
             </div>
           </div>
 
-          {/* Active Video Info */}
-          <div className="rounded-xl border border-slate-800/80 bg-slate-950/40 p-4">
+          {/* Active Video Info Banner */}
+          <div className="rounded-xl border border-slate-800/80 bg-slate-950/50 p-4">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <h3 className="text-sm sm:text-base font-bold text-sky-200">
                 {isRtl ? activeVideo.title_ar : activeVideo.title_en}
@@ -325,8 +348,8 @@ export function PromoVideoModal({
                 <AlertCircle className="size-3" />
                 <span>
                   {isRtl
-                    ? 'الفيديو نموذج توضيحي لميزات النظام'
-                    : 'Illustrative video showcasing core features'}
+                    ? 'فيديو تجريبي للاختبار الهيكلي (يمكنك استبدال الرابط لاحقاً)'
+                    : 'Functional sample video for structural testing (ready for your URL)'}
                 </span>
               </span>
             </div>
