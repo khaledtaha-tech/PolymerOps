@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   X,
   Play,
@@ -9,6 +9,10 @@ import {
   Sparkles,
   ExternalLink,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  VolumeX,
+  AlertCircle,
   Layers,
   Calculator,
   Activity,
@@ -21,10 +25,12 @@ import {
   Lock,
   ClipboardCheck,
   Briefcase,
-  AlertCircle,
-  VolumeX,
 } from 'lucide-react';
-import type { ApplicationItem, PromoVideoItem } from '@/lib/apps-data';
+import {
+  APPLICATIONS_DATA,
+  type ApplicationItem,
+  type PromoVideoItem,
+} from '@/lib/apps-data';
 import type { Locale } from '@/lib/i18n';
 
 export interface PromoVideoModalProps {
@@ -32,6 +38,8 @@ export interface PromoVideoModalProps {
   onClose: () => void;
   app: ApplicationItem | null;
   locale: Locale;
+  allApps?: ApplicationItem[];
+  onSelectApp?: (app: ApplicationItem) => void;
 }
 
 // Icon mapper matching applications catalog
@@ -51,38 +59,110 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// TODO: REPLACE THIS SAMPLE URL WITH YOUR ACTUAL PROMO VIDEO URL
-// Standard, high-availability, fully functional sample MP4 video for structural testing:
+// TODO: 5-SECOND PROMO VIDEOS SETUP FOR ALL 12 APPS
+//
+// 1. Drop your 5-second recorded MP4 videos directly into the `public/videos/` folder:
+//    - filmcalc.mp4     (Blown Film Pro Suite)
+//    - pipecalc.mp4     (PVC Pipe Calculations / PipeCalc)
+//    - pipe1.mp4        (PVC Pipe Production & Analytics Suite)
+//    - cp.mp4           (Compounding Process Control)
+//    - machines.mp4     (Process Conditions & Trial Manager)
+//    - pwp.mp4          (PWP Manpower Planner)
+//    - equiledger.mp4   (EquiLedger Asset & Maintenance)
+//    - ppc.mp4          (Project Control Center)
+//    - master.mp4       (PolymerOps Master Vault)
+//    - pass.mp4         (Smart Vault Manager)
+//    - mintle.mp4       (Mintle Visit Planner)
+//    - jobhunter.mp4    (Smart Job Hunter)
+//
+// 2. Until you provide the 5-sec video files, the slider automatically plays
+//    the working test video below, so every single app slide is 100% testable right now!
 // ═══════════════════════════════════════════════════════════════════════════
-const SAMPLE_PROMO_VIDEO_URL_1 = 'https://www.w3schools.com/html/mov_bbb.mp4';
-const SAMPLE_PROMO_VIDEO_URL_2 =
-  'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
+const SAMPLE_TEST_VIDEO_URL = 'https://www.w3schools.com/html/mov_bbb.mp4';
 
 export function PromoVideoModal({
   isOpen,
   onClose,
   app,
   locale,
+  allApps = APPLICATIONS_DATA,
+  onSelectApp,
 }: PromoVideoModalProps) {
   const isRtl = locale === 'ar';
-  const [activeVideoIndex, setActiveVideoIndex] = useState<number>(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const carouselStripRef = useRef<HTMLDivElement | null>(null);
 
-  // Close modal on Escape key press
+  // Local state to track currently active app in the slider
+  const [currentAppId, setCurrentAppId] = useState<string>(app?.id || allApps[0]?.id);
+
+  // Sync with prop when modal opens or initial app changes
+  useEffect(() => {
+    if (app?.id) {
+      setCurrentAppId(app.id);
+    }
+  }, [app?.id, isOpen]);
+
+  // Current active app
+  const activeApp =
+    allApps.find((a) => a.id === currentAppId) || app || allApps[0];
+
+  const currentIndex = allApps.findIndex((a) => a.id === activeApp.id);
+  const totalApps = allApps.length;
+
+  // Navigation handlers
+  const handleSelectApp = useCallback(
+    (targetApp: ApplicationItem) => {
+      setCurrentAppId(targetApp.id);
+      if (onSelectApp) {
+        onSelectApp(targetApp);
+      }
+      if (videoRef.current) {
+        videoRef.current.load();
+        videoRef.current.play().catch(() => {
+          // Handled silent autoplay restrictions if any
+        });
+      }
+    },
+    [onSelectApp]
+  );
+
+  const handleNext = useCallback(() => {
+    const nextIdx = (currentIndex + 1) % totalApps;
+    handleSelectApp(allApps[nextIdx]);
+  }, [currentIndex, totalApps, allApps, handleSelectApp]);
+
+  const handlePrev = useCallback(() => {
+    const prevIdx = (currentIndex - 1 + totalApps) % totalApps;
+    handleSelectApp(allApps[prevIdx]);
+  }, [currentIndex, totalApps, allApps, handleSelectApp]);
+
+  // Keyboard navigation: Escape to close, Arrow keys to slide
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
+      } else if (e.key === 'ArrowRight') {
+        if (isRtl) {
+          handlePrev();
+        } else {
+          handleNext();
+        }
+      } else if (e.key === 'ArrowLeft') {
+        if (isRtl) {
+          handleNext();
+        } else {
+          handlePrev();
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isRtl, handleNext, handlePrev]);
 
-  // Lock body scroll when modal is active to prevent background scrolling
+  // Lock body scroll when modal is active
   useEffect(() => {
     if (isOpen) {
       const originalOverflow = document.body.style.overflow;
@@ -93,76 +173,49 @@ export function PromoVideoModal({
     }
   }, [isOpen]);
 
-  // Reset active video index when app changes or modal opens
+  // Scroll active thumbnail into view in the bottom slider strip
   useEffect(() => {
-    if (isOpen) {
-      setActiveVideoIndex(0);
+    if (carouselStripRef.current) {
+      const activeEl = carouselStripRef.current.querySelector(
+        `[data-app-id="${activeApp.id}"]`
+      ) as HTMLElement | null;
+      if (activeEl) {
+        activeEl.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center',
+        });
+      }
     }
-  }, [isOpen, app?.id]);
+  }, [activeApp.id]);
 
-  if (!isOpen || !app) {
+  if (!isOpen || !activeApp) {
     return null;
   }
 
-  const IconComponent = ICON_MAP[app.iconName] || Layers;
-  const title = isRtl ? app.title_ar : app.title_en;
-  const category = isRtl ? app.category_ar : app.category_en;
-  const features = isRtl ? app.features_ar : app.features_en;
+  const IconComponent = ICON_MAP[activeApp.iconName] || Layers;
+  const title = isRtl ? activeApp.title_ar : activeApp.title_en;
+  const description = isRtl ? activeApp.description_ar : activeApp.description_en;
+  const category = isRtl ? activeApp.category_ar : activeApp.category_en;
+  const features = isRtl ? activeApp.features_ar : activeApp.features_en;
 
   const domain = (() => {
     try {
-      return new URL(app.url).hostname;
+      return new URL(activeApp.url).hostname;
     } catch {
-      return app.url;
+      return activeApp.url;
     }
   })();
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PROMOTIONAL & EXPLAINER VIDEOS DATA
-  // Default 2 working promotional videos per app (can be overridden in app.promoVideos)
-  // ═══════════════════════════════════════════════════════════════════════════
-  const defaultVideos: PromoVideoItem[] = [
-    {
-      id: 'promo-1',
-      title_en: 'System Overview & Operational Tour',
-      title_ar: 'نظرة عامة والبرومو التعريفي بالمنظومة',
-      description_en:
-        'A comprehensive overview of core capabilities, input parameters, and industrial workflows tailored for production teams.',
-      description_ar:
-        'استعراض شامل لأهم وظائف التطبيق، مدخلات العمليات الصناعية، ولوحات المراقبة اللحظية المصممة لمهندسي وفنيي الإنتاج.',
-      duration: '00:10',
-      // TODO: REPLACE THIS SAMPLE URL WITH YOUR ACTUAL PROMO VIDEO URL
-      videoUrl: SAMPLE_PROMO_VIDEO_URL_1,
-      posterImage: app.image,
-    },
-    {
-      id: 'promo-2',
-      title_en: 'In-Depth Engineering & Technical Walkthrough',
-      title_ar: 'دليل الاستخدام الفني والتشغيل الهندسي المتقدم',
-      description_en:
-        'Step-by-step walkthrough covering calibration calculations, tolerance monitoring, and exporting industrial reports.',
-      description_ar:
-        'شرح تطبيقي مفصل لطريقة إدخال البيانات، ضبط حدود التفاوت المقبولة، وإصدار التقارير الفنية المعتمدة للمصنع.',
-      duration: '00:05',
-      // TODO: REPLACE THIS SAMPLE URL WITH YOUR SECOND PROMO VIDEO URL
-      videoUrl: SAMPLE_PROMO_VIDEO_URL_2,
-      posterImage: app.image,
-    },
-  ];
-
-  const videosList: PromoVideoItem[] =
-    app.promoVideos && app.promoVideos.length > 0
-      ? app.promoVideos
-      : defaultVideos;
-
-  const activeVideo = videosList[activeVideoIndex] || videosList[0];
+  const nextApp = allApps[(currentIndex + 1) % totalApps];
+  const prevApp = allApps[(currentIndex - 1 + totalApps) % totalApps];
 
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="promo-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto"
       dir={isRtl ? 'rtl' : 'ltr'}
     >
       {/* 1. Dark Overlay Backdrop (Clicking outside closes modal) */}
@@ -174,22 +227,22 @@ export function PromoVideoModal({
       {/* 2. Main Modal Dialog Box */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative z-10 w-full max-w-4xl overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-700/80 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white shadow-2xl shadow-black/80 animate-in zoom-in-95 duration-200"
+        className="relative z-10 w-full max-w-4xl overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-700/80 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white shadow-2xl shadow-black/85 animate-in zoom-in-95 duration-200"
       >
-        {/* Modal Header */}
-        <div className="flex items-center justify-between gap-3 border-b border-slate-800 bg-slate-900/95 px-4 py-3.5 sm:px-6 sm:py-4">
+        {/* Modal Header with App Info & Slider Counter */}
+        <div className="flex items-center justify-between gap-3 border-b border-slate-800 bg-slate-900/95 px-4 py-3 sm:px-6 sm:py-3.5">
           <div className="flex items-center gap-3 min-w-0">
             {/* App Icon */}
             <div className="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-600 to-slate-800 text-white shadow-md shadow-sky-600/20 border border-sky-500/30">
               <IconComponent className="size-5 text-sky-200" />
             </div>
 
-            {/* Title & Meta */}
+            {/* Title & Metadata */}
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h2
                   id="promo-modal-title"
-                  className="text-sm sm:text-base md:text-lg font-bold text-white truncate"
+                  className="text-sm sm:text-base font-bold text-white truncate"
                 >
                   {title}
                 </h2>
@@ -215,159 +268,243 @@ export function PromoVideoModal({
             </div>
           </div>
 
-          {/* Close Button ("X") */}
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={isRtl ? 'إغلاق النافذة' : 'Close modal'}
-            className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-full bg-slate-800/80 text-slate-400 transition-colors hover:bg-rose-500/20 hover:text-rose-300 hover:border hover:border-rose-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500"
-          >
-            <X className="size-5" />
-          </button>
+          {/* Right Header Controls: Slide Counter & Close Button */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Slider Counter Pill */}
+            <div className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-slate-800/90 border border-slate-700 px-3 py-1 text-xs font-semibold text-sky-300">
+              <Film className="size-3.5 text-sky-400" />
+              <span>
+                {isRtl
+                  ? `تطبيق ${currentIndex + 1} من ${totalApps}`
+                  : `App ${currentIndex + 1} of ${totalApps}`}
+              </span>
+            </div>
+
+            {/* Close Button ("X") */}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={isRtl ? 'إغلاق النافذة' : 'Close modal'}
+              className="flex size-9 sm:size-10 items-center justify-center rounded-full bg-slate-800/80 text-slate-400 transition-colors hover:bg-rose-500/20 hover:text-rose-300 hover:border hover:border-rose-500/40 focus:outline-none focus:ring-2 focus:ring-sky-500"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Video Selection Tabs (Switch between Video 1 and Video 2) */}
-        {videosList.length > 1 && (
-          <div className="flex items-center gap-2 border-b border-slate-800 bg-slate-950/60 px-4 py-2.5 sm:px-6 overflow-x-auto scrollbar-none">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 shrink-0 me-1">
-              {isRtl ? 'مقاطع الفيديو:' : 'Promo Videos:'}
-            </span>
-            {videosList.map((vid, idx) => {
-              const isSelected = activeVideoIndex === idx;
-              const vidTitle = isRtl ? vid.title_ar : vid.title_en;
-              return (
-                <button
-                  key={vid.id || idx}
-                  type="button"
-                  onClick={() => {
-                    setActiveVideoIndex(idx);
-                    if (videoRef.current) {
-                      videoRef.current.load();
-                    }
-                  }}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
-                    isSelected
-                      ? 'bg-gradient-to-r from-sky-600 to-sky-700 text-white shadow-md shadow-sky-600/30 border border-sky-400/40'
-                      : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/50'
-                  }`}
-                >
-                  <Play
-                    className={`size-3 ${
-                      isSelected
-                        ? 'fill-white text-white'
-                        : 'fill-slate-400 text-slate-400'
-                    }`}
-                  />
-                  <span>
-                    {isRtl ? `فيديو ${idx + 1}:` : `Video ${idx + 1}:`} {vidTitle}
-                  </span>
-                  {vid.duration && (
-                    <span className="rounded bg-black/40 px-1.5 py-0.5 text-[10px] text-slate-300">
-                      {vid.duration}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Video Player Section */}
-        <div className="p-4 sm:p-6 space-y-4">
-          <div className="relative aspect-video w-full max-w-full overflow-hidden rounded-xl border border-slate-800 bg-black shadow-lg shadow-black/60">
-            {/* 
-              ═══════════════════════════════════════════════════════════════════
-              TODO: REPLACE THIS SAMPLE URL WITH YOUR ACTUAL PROMO VIDEO URL
-              
-              Option 1 (Default): Standard HTML5 <video> player for self-hosted MP4 files
-              Option 2: Replace this block with a YouTube or Vimeo iframe embed:
-              <iframe
-                src="https://www.youtube-nocookie.com/embed/YOUR_VIDEO_ID"
-                title={isRtl ? activeVideo.title_ar : activeVideo.title_en}
-                className="w-full h-full border-0 rounded-xl"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
+        {/* Video Slider Section */}
+        <div className="p-3 sm:p-5 space-y-4">
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {/* VIDEO PLAYER WITH INTERACTIVE PREV / NEXT SLIDER ARROWS */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          <div className="relative aspect-video w-full max-w-full overflow-hidden rounded-xl sm:rounded-2xl border border-slate-800 bg-black shadow-2xl shadow-black/80 group/player">
+            {/* Video Player Element */}
+            <video
+              ref={videoRef}
+              key={activeApp.id}
+              controls
+              muted
+              playsInline
+              autoPlay
+              preload="metadata"
+              poster={activeApp.image}
+              className="h-full w-full object-contain bg-black rounded-xl sm:rounded-2xl"
+            >
+              {/* 
+                ═══════════════════════════════════════════════════════════════
+                // TODO: 5-SECOND RECORDED APP VIDEO SOURCE
+                // 1. Primary: dedicated 5-sec video file from public/videos/<id>.mp4
+                // ═══════════════════════════════════════════════════════════════
+              */}
+              <source
+                // TODO: REPLACE OR DROP YOUR 5-SEC VIDEO FILE AT public/videos/${activeApp.id}.mp4
+                src={`/videos/${activeApp.id}.mp4`}
+                type="video/mp4"
               />
-              ═══════════════════════════════════════════════════════════════════
-            */}
-            {activeVideo.embedUrl ? (
-              <iframe
-                src={activeVideo.embedUrl}
-                title={isRtl ? activeVideo.title_ar : activeVideo.title_en}
-                className="h-full w-full border-0 rounded-xl"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              <video
-                ref={videoRef}
-                key={activeVideo.videoUrl}
-                controls
-                muted
-                playsInline
-                preload="metadata"
-                poster={activeVideo.posterImage || app.image}
-                className="h-full w-full object-contain bg-black rounded-xl"
-              >
-                {/* ═══════════════════════════════════════════════════════════════ */}
-                {/* // TODO: REPLACE THIS SAMPLE URL WITH YOUR ACTUAL PROMO VIDEO URL */}
-                {/* ═══════════════════════════════════════════════════════════════ */}
-                <source
-                  // TODO: REPLACE THIS SAMPLE URL WITH YOUR ACTUAL PROMO VIDEO URL
-                  src={activeVideo.videoUrl}
-                  type="video/mp4"
-                />
-                <p className="p-4 text-center text-xs text-slate-400">
-                  {isRtl
-                    ? 'متصفحك لا يدعم تشغيل هذا الفيديو مباشرة.'
-                    : 'Your browser does not support the video tag.'}
-                </p>
-              </video>
-            )}
 
-            {/* Video Watermark / Top Right Pill */}
-            <div className="absolute top-3 end-3 pointer-events-none z-10 flex items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-950/80 backdrop-blur-md px-2 py-1 text-[10px] font-semibold text-sky-300 border border-sky-500/30 shadow-sm">
+              {/* 
+                ═══════════════════════════════════════════════════════════════
+                // 2. Fallback: functional sample video for immediate testing
+                // ═══════════════════════════════════════════════════════════════
+              */}
+              <source
+                // Sample video for testing until your 5-sec file is added
+                src={SAMPLE_TEST_VIDEO_URL}
+                type="video/mp4"
+              />
+              <p className="p-4 text-center text-xs text-slate-400">
+                {isRtl
+                  ? 'متصفحك لا يدعم تشغيل هذا الفيديو مباشرة.'
+                  : 'Your browser does not support the video tag.'}
+              </p>
+            </video>
+
+            {/* Floating Slider Arrow: PREVIOUS APP (Left / Start) */}
+            <button
+              type="button"
+              onClick={isRtl ? handleNext : handlePrev}
+              aria-label={
+                isRtl
+                  ? `التالي: ${nextApp.title_ar}`
+                  : `Previous: ${prevApp.title_en}`
+              }
+              title={
+                isRtl
+                  ? `الانتقال إلى: ${nextApp.title_ar}`
+                  : `Go to: ${prevApp.title_en}`
+              }
+              className="absolute start-2 sm:start-4 top-1/2 -translate-y-1/2 z-20 flex size-10 sm:size-12 items-center justify-center rounded-full bg-slate-950/75 hover:bg-sky-600 text-white backdrop-blur-md border border-white/20 shadow-xl transition-all duration-200 hover:scale-110 active:scale-95 group-hover/player:opacity-100 opacity-90 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            >
+              <ChevronLeft className="size-6 text-white rtl:rotate-180" />
+            </button>
+
+            {/* Floating Slider Arrow: NEXT APP (Right / End) */}
+            <button
+              type="button"
+              onClick={isRtl ? handlePrev : handleNext}
+              aria-label={
+                isRtl
+                  ? `السابق: ${prevApp.title_ar}`
+                  : `Next: ${nextApp.title_en}`
+              }
+              title={
+                isRtl
+                  ? `الانتقال إلى: ${prevApp.title_ar}`
+                  : `Go to: ${nextApp.title_en}`
+              }
+              className="absolute end-2 sm:end-4 top-1/2 -translate-y-1/2 z-20 flex size-10 sm:size-12 items-center justify-center rounded-full bg-slate-950/75 hover:bg-sky-600 text-white backdrop-blur-md border border-white/20 shadow-xl transition-all duration-200 hover:scale-110 active:scale-95 group-hover/player:opacity-100 opacity-90 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            >
+              <ChevronRight className="size-6 text-white rtl:rotate-180" />
+            </button>
+
+            {/* Top Corner Overlay Badges */}
+            <div className="absolute top-3 start-3 pointer-events-none z-10 flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 rounded-md bg-slate-950/80 backdrop-blur-md px-2.5 py-1 text-[11px] font-bold text-sky-300 border border-sky-500/30 shadow-md">
                 <Film className="size-3 text-sky-400" />
-                <span>PolymerOps Demo</span>
+                <span>
+                  {isRtl
+                    ? `تطبيق ${currentIndex + 1} / ${totalApps}`
+                    : `App ${currentIndex + 1} / ${totalApps}`}
+                </span>
               </span>
+            </div>
+
+            <div className="absolute top-3 end-3 pointer-events-none z-10 flex items-center gap-1.5">
               <span className="inline-flex items-center gap-1 rounded-md bg-slate-950/80 backdrop-blur-md px-2 py-1 text-[10px] font-semibold text-amber-300 border border-amber-500/30 shadow-sm">
                 <VolumeX className="size-3 text-amber-400" />
-                <span>{isRtl ? 'صامت افتراضياً' : 'Muted'}</span>
+                <span>{isRtl ? 'فيديو تجريبي 5 ثوانٍ' : '5-Sec Demo Video'}</span>
               </span>
             </div>
           </div>
 
-          {/* Active Video Info Banner */}
-          <div className="rounded-xl border border-slate-800/80 bg-slate-950/50 p-4">
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          {/* HORIZONTAL CAROUSEL STRIP: SLIDE OR CLICK ANY OF THE 12 APPS */}
+          {/* ════════════════════════════════════════════════════════════════════ */}
+          <div className="rounded-xl border border-slate-800/90 bg-slate-950/60 p-3">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <Film className="size-3.5 text-sky-400" />
+                <span>
+                  {isRtl
+                    ? 'اسحب أو اختر التطبيق لمشاهدة الفيديو (12 تطبيقاً صناعياً):'
+                    : 'Slide or select application to preview (12 apps):'}
+                </span>
+              </span>
+
+              {/* Quick Prev / Next Buttons for the Carousel Strip */}
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={handlePrev}
+                  className="flex size-6 items-center justify-center rounded-md bg-slate-800 text-slate-300 hover:bg-sky-600 hover:text-white transition-colors"
+                  aria-label="Previous app"
+                >
+                  <ChevronLeft className="size-3.5 rtl:rotate-180" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="flex size-6 items-center justify-center rounded-md bg-slate-800 text-slate-300 hover:bg-sky-600 hover:text-white transition-colors"
+                  aria-label="Next app"
+                >
+                  <ChevronRight className="size-3.5 rtl:rotate-180" />
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable Track with All 12 Applications */}
+            <div
+              ref={carouselStripRef}
+              className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-700"
+            >
+              {allApps.map((item, idx) => {
+                const isSelected = item.id === activeApp.id;
+                const ItemIcon = ICON_MAP[item.iconName] || Layers;
+                const itemTitle = isRtl ? item.title_ar : item.title_en;
+
+                return (
+                  <button
+                    key={item.id}
+                    data-app-id={item.id}
+                    type="button"
+                    onClick={() => handleSelectApp(item)}
+                    className={`flex items-center gap-2 shrink-0 rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-sky-600 to-sky-700 text-white shadow-lg shadow-sky-600/30 border border-sky-400 ring-2 ring-sky-400/40 scale-[1.02]'
+                        : 'bg-slate-900/90 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-800'
+                    }`}
+                  >
+                    <span
+                      className={`flex size-5 shrink-0 items-center justify-center rounded-lg text-[10px] font-bold ${
+                        isSelected
+                          ? 'bg-white/20 text-white'
+                          : 'bg-slate-800 text-sky-400'
+                      }`}
+                    >
+                      {idx + 1}
+                    </span>
+                    <ItemIcon className="size-3.5 shrink-0" />
+                    <span className="truncate max-w-[150px]">{itemTitle}</span>
+                    <span
+                      className={`rounded px-1.5 py-0.5 text-[9px] font-mono ${
+                        isSelected
+                          ? 'bg-black/30 text-sky-200'
+                          : 'bg-black/40 text-slate-400'
+                      }`}
+                    >
+                      5s
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Active Application Info & Highlights */}
+          <div className="rounded-xl border border-slate-800/80 bg-slate-950/50 p-3.5 sm:p-4">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <h3 className="text-sm sm:text-base font-bold text-sky-200">
-                {isRtl ? activeVideo.title_ar : activeVideo.title_en}
+                {title}
               </h3>
               <span className="text-[11px] font-medium text-amber-400/90 flex items-center gap-1">
                 <AlertCircle className="size-3" />
                 <span>
                   {isRtl
-                    ? 'فيديو تجريبي للاختبار الهيكلي (يمكنك استبدال الرابط لاحقاً)'
-                    : 'Functional sample video for structural testing (ready for your URL)'}
+                    ? 'الفيديو جاهز لاستقبال تسجيلات الـ 5 ثوانٍ لكل تطبيق'
+                    : 'Ready to receive your 5-sec video recording for each app'}
                 </span>
               </span>
             </div>
-            <p className="mt-1.5 text-xs sm:text-sm text-slate-300 leading-relaxed">
-              {isRtl ? activeVideo.description_ar : activeVideo.description_en}
+            <p className="mt-1 text-xs sm:text-sm text-slate-300 leading-relaxed">
+              {description}
             </p>
-          </div>
 
-          {/* App Key Capabilities Highlights */}
-          <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
-              {isRtl ? 'أهم إمكانيات التطبيق الصناعية:' : 'Core Application Capabilities:'}
-            </span>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {/* 3 Key Bullet Features */}
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
               {features.slice(0, 3).map((feat, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-300"
+                  className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/60 px-2.5 py-1.5 text-xs text-slate-300"
                 >
                   <CheckCircle2 className="size-3.5 shrink-0 text-sky-400" />
                   <span className="truncate">{feat}</span>
@@ -377,16 +514,32 @@ export function PromoVideoModal({
           </div>
         </div>
 
-        {/* Modal Action Footer */}
+        {/* Modal Action Footer with Next / Prev buttons and Direct App Launch */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-800 bg-slate-950 px-4 py-3 sm:px-6">
-          <p className="text-xs text-slate-400 text-center sm:text-start">
-            {isRtl
-              ? 'يمكنك الانتقال لتشغيل التطبيق والاطلاع على الواجهة الفعلية.'
-              : 'You can launch the live environment and explore the active interface.'}
-          </p>
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+            {/* Prev App Button */}
+            <button
+              type="button"
+              onClick={handlePrev}
+              className="inline-flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs font-bold text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
+            >
+              <ChevronLeft className="size-4 rtl:rotate-180" />
+              <span>{isRtl ? 'التطبيق السابق' : 'Previous App'}</span>
+            </button>
+
+            {/* Next App Button */}
+            <button
+              type="button"
+              onClick={handleNext}
+              className="inline-flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs font-bold text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
+            >
+              <span>{isRtl ? 'التطبيق التالي' : 'Next App'}</span>
+              <ChevronRight className="size-4 rtl:rotate-180" />
+            </button>
+          </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            {/* Secondary Close Button */}
+            {/* Close Button */}
             <button
               type="button"
               onClick={onClose}
@@ -395,14 +548,18 @@ export function PromoVideoModal({
               {isRtl ? 'إغلاق' : 'Close'}
             </button>
 
-            {/* Primary Launch App CTA */}
+            {/* Primary Launch App CTA for the current active app */}
             <a
-              href={app.url}
+              href={activeApp.url}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-sky-600 via-sky-700 to-sky-800 px-5 py-2 text-xs font-bold text-white shadow-md shadow-sky-600/30 transition-all hover:from-sky-500 hover:to-sky-700 hover:shadow-sky-500/20 active:scale-[0.98]"
             >
-              <span>{isRtl ? 'تشغيل التطبيق الآن' : 'Launch Application'}</span>
+              <span>
+                {isRtl
+                  ? `تشغيل ${activeApp.name}`
+                  : `Launch ${activeApp.name}`}
+              </span>
               <ExternalLink className="size-3.5 ms-1" />
             </a>
           </div>

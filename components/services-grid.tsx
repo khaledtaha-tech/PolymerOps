@@ -134,12 +134,14 @@ export function ServicesGrid({ locale, initialCategory = 'all' }: ServicesGridPr
         </div>
       )}
 
-      {/* Reusable Video Promo Modal */}
+      {/* Reusable Video Promo Modal with full 12-App Slider support */}
       <PromoVideoModal
         isOpen={!!selectedPromoApp}
         onClose={() => setSelectedPromoApp(null)}
         app={selectedPromoApp}
         locale={locale}
+        allApps={APPLICATIONS_DATA}
+        onSelectApp={(nextApp) => setSelectedPromoApp(nextApp)}
       />
     </div>
   );
