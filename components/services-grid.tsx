@@ -271,7 +271,6 @@ export function ServicesGrid({ locale, initialCategory = 'all' }: ServicesGridPr
         app={selectedPromoApp}
         locale={locale}
         allApps={APPLICATIONS_DATA}
-        onSelectApp={(nextApp) => setSelectedPromoApp(nextApp)}
       />
     </div>
   );
