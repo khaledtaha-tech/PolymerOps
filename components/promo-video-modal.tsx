@@ -251,20 +251,20 @@ export function PromoVideoModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="promo-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto"
+      onClick={onClose}
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200"
       dir={isRtl ? 'rtl' : 'ltr'}
     >
-      {/* 1. Dark Overlay Backdrop (Clicking outside closes modal) */}
+      {/* Centering wrapper (clicking anywhere outside the card calls onClose) */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-slate-950/85 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"
-      />
-
-      {/* 2. Main Modal Dialog Box */}
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="relative z-10 w-full max-w-4xl overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-700/80 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white shadow-2xl shadow-black/85 animate-in zoom-in-95 duration-200"
+        className="flex min-h-full items-center justify-center p-2 sm:p-4 md:p-6"
       >
+        {/* Main Modal Dialog Box: stopPropagation prevents clicks inside the card from closing */}
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-w-4xl overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-700/80 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white shadow-2xl shadow-black/90 animate-in zoom-in-95 duration-200 my-auto"
+        >
         {/* Modal Header with App Info & Slider Counter */}
         <div className="flex items-center justify-between gap-3 border-b border-slate-800 bg-slate-900/95 px-4 py-3 sm:px-6 sm:py-3.5">
           <div className="flex items-center gap-3 min-w-0">
@@ -624,5 +624,6 @@ export function PromoVideoModal({
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
